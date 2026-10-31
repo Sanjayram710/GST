@@ -77,7 +77,7 @@ export const Dashboard: React.FC = () => {
                 </h3>
               </div>
               <span className="px-2.5 py-1 rounded-chip bg-ok/20 border border-ok/40 text-ok text-xs font-bold">
-                Audit Ready
+                Good Standing
               </span>
             </div>
 
@@ -97,10 +97,13 @@ export const Dashboard: React.FC = () => {
                     No Late Fees
                   </span>
                   <span className="text-[11px] bg-white/10 px-2.5 py-1 rounded-chip text-white/90">
-                    GSTR-1 Filed
+                    GSTR-1 (Sep) Filed
                   </span>
-                  <span className="text-[11px] bg-accent/20 text-accent font-semibold px-2.5 py-1 rounded-chip">
-                    Payment in 4d
+                  <span className="text-[11px] bg-white/10 px-2.5 py-1 rounded-chip text-white/90">
+                    GSTR-3B (Sep) Filed
+                  </span>
+                  <span className="text-[11px] bg-risk/20 text-red-200 font-semibold px-2.5 py-1 rounded-chip">
+                    GSTR-1 (Oct) due 11 Nov
                   </span>
                 </div>
               </div>
@@ -146,7 +149,7 @@ export const Dashboard: React.FC = () => {
                   GSTR-3B Summary Return
                 </p>
                 <p className="text-xs text-muted mt-1 leading-relaxed">
-                  Due on <strong>4 November 2026</strong>. Auto-calculated net tax liability:
+                  Due on <strong>20 November 2026</strong>. Auto-calculated net tax liability:
                 </p>
               </div>
 

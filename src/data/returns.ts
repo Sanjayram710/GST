@@ -26,7 +26,7 @@ export const CURRENT_RETURNS: ReturnCard[] = [
     form: 'GSTR-3B',
     title: 'Summary Return & Tax Payment',
     period: 'October 2026',
-    dueDate: '04 Nov 2026', // Spec: 4 days remaining from 31 Oct
+    dueDate: '20 Nov 2026',
     status: 'Ready to File',
     taxableValue: 1240000,
     taxLiability: 104800,

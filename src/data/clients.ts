@@ -14,7 +14,7 @@ export interface ClientAccount {
 }
 
 export const CA_CLIENTS: ClientAccount[] = [
-  { id: 'c-1', businessName: 'Malabar Spice Traders', gstin: '32ABCDE1234F1Z5', tradeType: 'Spice Wholesaler', complianceScore: 92, ragStatus: 'warn', nextDue: '04 Nov 2026', daysRemaining: 4, status: 'Ready to file', assignedManager: 'CA Rajesh V.', estimatedTax: 104800, itcMismatch: 22900 },
+  { id: 'c-1', businessName: 'Malabar Spice Traders', gstin: '32ABCDE1234F1Z5', tradeType: 'Spice Wholesaler', complianceScore: 92, ragStatus: 'warn', nextDue: '20 Nov 2026', daysRemaining: 20, status: 'Ready to file', assignedManager: 'CA Rajesh V.', estimatedTax: 104800, itcMismatch: 22900 },
   { id: 'c-2', businessName: 'Cochin Seafoods International', gstin: '32AAACS9988K1Z3', tradeType: 'Marine Exports', complianceScore: 98, ragStatus: 'ok', nextDue: '20 Nov 2026', daysRemaining: 20, status: 'Filed', assignedManager: 'CA Meera N.', estimatedTax: 345000, itcMismatch: 0 },
   { id: 'c-3', businessName: 'Wayanad Green Plantations', gstin: '32AAAWP1122Q1Z4', tradeType: 'Coffee & Pepper', complianceScore: 68, ragStatus: 'risk', nextDue: '04 Nov 2026', daysRemaining: 4, status: 'Action required', assignedManager: 'CA Rajesh V.', estimatedTax: 78000, itcMismatch: 45000 },
   { id: 'c-4', businessName: 'Calicut Timber & Wood Works', gstin: '32AABCT3344R1Z5', tradeType: 'Lumber & Timber', complianceScore: 84, ragStatus: 'warn', nextDue: '05 Nov 2026', daysRemaining: 5, status: 'Pending invoices', assignedManager: 'CA Anjali S.', estimatedTax: 165000, itcMismatch: 12000 },

@@ -30,11 +30,11 @@ Once Kochi Coir Works files or you confirm the invoice date with Calicut Packagi
     id: 'faq-due-date',
     prompt: 'What is my next GST deadline?',
     tag: 'Deadlines',
-    response: `Your next deadline is **4 November 2026** (in **4 days**). 
+    response: `Your next deadline is **20 November 2026** (in **20 days**). 
 
 This is the scheduled payment date for **October 2026 GSTR-3B**. Your estimated net tax payable calculated by the rules engine is **₹1,04,800**.
 
-Filing before 4 November ensures zero interest and protects your **92/100** compliance score.`,
+Filing before 20 November ensures zero interest and protects your **92/100** compliance score.`,
   },
   {
     id: 'faq-need-file',

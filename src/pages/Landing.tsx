@@ -151,7 +151,7 @@ export const Landing: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2 p-1.5 rounded-md bg-white/5">
                     <StatusDot status="ok" size="sm" />
-                    <span className="text-white/90">GSTR-1 Filed</span>
+                    <span className="text-white/90">GSTR-1 (Sep) Filed</span>
                   </div>
                   <div className="flex items-center gap-2 p-1.5 rounded-md bg-white/5">
                     <StatusDot status="warn" size="sm" />
@@ -159,7 +159,7 @@ export const Landing: React.FC = () => {
                   </div>
                   <div className="flex items-center gap-2 p-1.5 rounded-md bg-white/5">
                     <StatusDot status="risk" size="sm" pulse={true} />
-                    <span className="text-white/90">Due in 4 days: {formatINR(104800)}</span>
+                    <span className="text-white/90">GSTR-1 (Oct) due 11 Nov</span>
                   </div>
                 </div>
               </div>

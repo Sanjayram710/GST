@@ -22,7 +22,7 @@ export const WhatsAppModal: React.FC<WhatsAppModalProps> = ({ isOpen, onClose })
     {
       id: 'wa-1',
       sender: 'bot',
-      text: 'Namaste Anil ji! 🙏\n\nYour GSTR-3B return for **October 2026** is due in **4 days** (4 Nov 2026).\n\n• Tax Payable: *₹1,04,800*\n• Status: Prepared & Verified\n\nReply *PAY* to authorize payment, or *DETAILS* to view ITC breakdown.',
+      text: 'Namaste Anil ji! 🙏\n\nYour GSTR-3B return for **October 2026** is due in **20 days** (20 Nov 2026).\n\n• Tax Payable: *₹1,04,800*\n• Status: Prepared & Verified\n\nReply *PAY* to authorize payment, or *DETAILS* to view ITC breakdown.',
       time: '10:30 AM',
     },
   ]);

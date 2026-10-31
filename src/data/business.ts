@@ -28,16 +28,16 @@ export const CURRENT_BUSINESS: BusinessProfile = {
   scheme: "Regular",
   complianceScore: 92,
   currentPeriod: "October 2026",
-  nextFilingDeadline: "4 Nov 2026",
-  daysRemaining: 4,
+  nextFilingDeadline: "20 Nov 2026",
+  daysRemaining: 20,
 };
 
 export const COMPLIANCE_RAG_ITEMS = [
   { id: '1', title: 'GST Registration Active', status: 'ok' as const, detail: 'Verified with GSTN portal' },
-  { id: '2', title: 'GSTR-1 Filed', status: 'ok' as const, detail: 'Filed on 11 Oct 2026 · ARN AA3210260019284' },
-  { id: '3', title: 'GSTR-3B Filed', status: 'ok' as const, detail: 'Previous period filed without penalty' },
+  { id: '2', title: 'GSTR-1 (Sep) Filed', status: 'ok' as const, detail: 'Filed on 11 Oct 2026 · ARN AA3210260019284' },
+  { id: '3', title: 'GSTR-3B (Sep) Filed', status: 'ok' as const, detail: 'Previous period filed without penalty' },
   { id: '4', title: 'ITC Reconciliation — 2 mismatches', status: 'warn' as const, detail: '₹22,900 held pending supplier verification' },
-  { id: '5', title: 'Next payment due in 4 days', status: 'risk' as const, detail: 'Due on 4 Nov 2026 · Estimated ₹1,04,800' },
+  { id: '5', title: 'GSTR-1 (Oct) due 11 Nov', status: 'risk' as const, detail: 'Due on 11 Nov 2026 · Invoice data uploaded' },
 ];
 
 export const TAX_TREND_DATA = [

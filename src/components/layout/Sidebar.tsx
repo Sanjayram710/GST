@@ -144,7 +144,7 @@ export const Sidebar: React.FC = () => {
           <div className="min-w-0">
             <p className="text-xs font-bold text-ink truncate">Malabar Spice Traders</p>
             <p className="text-[10px] text-ok font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-ok" /> Score: 92/100
+              <span className="w-1.5 h-1.5 rounded-full bg-ok" /> Score: 92/100 · Good Standing
             </p>
           </div>
           <Link to="/" title="Back to Landing" className="p-1.5 hover:bg-slate-200 rounded-md text-muted hover:text-ink">

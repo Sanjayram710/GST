@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SALES_INVOICES } from '../data/salesInvoices';
 import { PURCHASE_INVOICES } from '../data/purchaseInvoices';
 import { INITIAL_ITC_EXCEPTIONS } from '../data/reconcile';
-import { calculateGstSummary, ItcException } from '../lib/gst';
+import { calculateGstSummary, ItcException, Invoice } from '../lib/gst';
 import { formatINR } from '../lib/utils';
+import { parseInvoiceFile, downloadSampleTemplate } from '../lib/importer';
 import { ReferralBanner } from '../components/common/ReferralBanner';
 import confetti from 'canvas-confetti';
 import {
@@ -32,11 +33,14 @@ export const Copilot: React.FC = () => {
   // Current step 1 to 5 (or 6 for success screen)
   const [currentStep, setCurrentStep] = useState(1);
 
+  // Sales invoices state (supports live Excel / CSV upload)
+  const [salesInvoices, setSalesInvoices] = useState<Invoice[]>(SALES_INVOICES);
+  const [uploadedFileName, setUploadedFileName] = useState('Malabar_Sales_Oct2026.xlsx');
+  const [isParsingFile, setIsParsingFile] = useState(false);
+  const copilotFileInputRef = useRef<HTMLInputElement>(null);
+
   // Exceptions state (allows user to toggle Hold vs Accept, instantly updating the rules engine calculation)
   const [exceptions, setExceptions] = useState<ItcException[]>(INITIAL_ITC_EXCEPTIONS);
-
-  // Sales upload mock trigger state
-  const [hasUploadedSales, setHasUploadedSales] = useState(true);
 
   // Statutory consent checkbox for step 5
   const [hasConsented, setHasConsented] = useState(false);
@@ -53,7 +57,25 @@ export const Copilot: React.FC = () => {
   const [arnNumber, setArnNumber] = useState('AA3210260028192');
 
   // Real-time calculation through pure deterministic rules engine
-  const gstResult = calculateGstSummary(SALES_INVOICES, PURCHASE_INVOICES, exceptions);
+  const gstResult = calculateGstSummary(salesInvoices, PURCHASE_INVOICES, exceptions);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsParsingFile(true);
+    const result = await parseInvoiceFile(file, 'B2B');
+    setIsParsingFile(false);
+
+    if (result.success && result.invoices.length > 0) {
+      setSalesInvoices(result.invoices);
+      setUploadedFileName(result.fileName);
+    } else {
+      alert(result.error || 'Could not parse spreadsheet file.');
+    }
+
+    if (copilotFileInputRef.current) copilotFileInputRef.current.value = '';
+  };
 
   // Handle toggling exception status between hold and accepted
   const toggleException = (id: string) => {
@@ -168,37 +190,88 @@ export const Copilot: React.FC = () => {
       {/* STEP 1: SALES INVOICES */}
       {currentStep === 1 && (
         <div className="bg-surface rounded-card p-6 sm:p-8 border border-line shadow-soft space-y-6">
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-brand bg-brand-soft px-2.5 py-0.5 rounded-chip">
-              Step 1 of 5 · Sales
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-ink tracking-tight">
-              Upload your sales invoices
-            </h2>
-            <p className="text-sm text-muted">
-              Import sales bills or daybook from Excel, Tally, Zoho or your billing terminal.
-            </p>
+          {/* Hidden File Input */}
+          <input
+            type="file"
+            ref={copilotFileInputRef}
+            onChange={handleFileUpload}
+            accept=".xlsx, .xls, .csv"
+            className="hidden"
+          />
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="space-y-1">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-brand bg-brand-soft px-2.5 py-0.5 rounded-chip">
+                Step 1 of 5 · Sales
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-heading font-extrabold text-ink tracking-tight">
+                Upload your sales invoices
+              </h2>
+              <p className="text-sm text-muted">
+                Import sales bills or daybook from Excel (.xlsx) or CSV (.csv).
+              </p>
+            </div>
+
+            {/* Template Download Shortcuts */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => downloadSampleTemplate('xlsx')}
+                className="px-2.5 py-1.5 bg-bg hover:bg-slate-200 border border-line text-ink rounded-btn text-xs font-semibold flex items-center gap-1"
+                title="Download formatted sample Excel sheet"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-ok" />
+                <span>Sample .xlsx</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadSampleTemplate('csv')}
+                className="px-2.5 py-1.5 bg-bg hover:bg-slate-200 border border-line text-ink rounded-btn text-xs font-semibold flex items-center gap-1"
+                title="Download formatted sample CSV file"
+              >
+                <FileText className="w-3.5 h-3.5 text-brand" />
+                <span>Sample .csv</span>
+              </button>
+            </div>
           </div>
 
           {/* Upload Drop Zone */}
           <div
-            onClick={() => setHasUploadedSales(true)}
-            className="border-2 border-dashed border-brand/30 hover:border-brand bg-brand-soft/20 hover:bg-brand-soft/40 transition-colors rounded-card p-8 text-center cursor-pointer flex flex-col items-center justify-center"
+            onClick={() => copilotFileInputRef.current?.click()}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={async (e) => {
+              e.preventDefault();
+              const file = e.dataTransfer.files?.[0];
+              if (file) {
+                setIsParsingFile(true);
+                const res = await parseInvoiceFile(file, 'B2B');
+                setIsParsingFile(false);
+                if (res.success && res.invoices.length > 0) {
+                  setSalesInvoices(res.invoices);
+                  setUploadedFileName(res.fileName);
+                } else {
+                  alert(res.error || 'Failed to read spreadsheet file.');
+                }
+              }
+            }}
+            className="border-2 border-dashed border-brand/30 hover:border-brand bg-brand-soft/20 hover:bg-brand-soft/40 transition-colors rounded-card p-8 text-center cursor-pointer flex flex-col items-center justify-center group"
           >
-            <div className="w-14 h-14 rounded-2xl bg-brand text-white flex items-center justify-center shadow-soft mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-brand text-white flex items-center justify-center shadow-soft mb-3 group-hover:scale-105 transition-transform">
               <UploadCloud className="w-7 h-7" />
             </div>
             <p className="font-heading font-bold text-base text-ink">
-              Drag & drop sales file or click to browse
+              Drag & drop Excel (.xlsx) / CSV file, or click to browse
             </p>
             <p className="text-xs text-muted mt-1">
-              Supports .xlsx, .csv, Tally XML or JSON (Mock active)
+              Instant in-browser spreadsheet parser · No cloud upload required
             </p>
-            <div className="mt-4 flex items-center gap-2">
-              <span className="text-[11px] font-semibold bg-white border border-line px-2.5 py-1 rounded-chip text-ink flex items-center gap-1">
-                <FileSpreadsheet className="w-3.5 h-3.5 text-ok" /> Malabar_Sales_Oct2026.xlsx
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+              <span className="text-[11px] font-semibold bg-white border border-line px-3 py-1 rounded-chip text-ink flex items-center gap-1.5 shadow-sm">
+                <FileSpreadsheet className="w-3.5 h-3.5 text-ok" /> {uploadedFileName}
               </span>
-              <span className="text-xs text-ok font-bold">✓ Parsed 48 records</span>
+              <span className="text-xs text-ok font-bold">
+                ✓ Parsed {salesInvoices.length} records
+              </span>
             </div>
           </div>
 
@@ -209,7 +282,7 @@ export const Copilot: React.FC = () => {
               <p className="font-heading font-black text-2xl sm:text-3xl text-ink mt-1 tabular-nums">
                 {formatINR(gstResult.taxableSales)}
               </p>
-              <p className="text-xs text-muted mt-1">48 B2B & wholesale invoices</p>
+              <p className="text-xs text-muted mt-1">{salesInvoices.length} B2B & wholesale invoices parsed</p>
             </div>
             <div className="p-4 rounded-card bg-brand-soft/60 border border-brand/20">
               <span className="text-xs font-semibold text-brand">Total Output Tax (18%)</span>

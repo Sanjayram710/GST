@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { SALES_INVOICES } from '../data/salesInvoices';
 import { PURCHASE_INVOICES } from '../data/purchaseInvoices';
 import { Invoice } from '../lib/gst';
 import { formatINR } from '../lib/utils';
+import { parseInvoiceFile, downloadSampleTemplate, exportInvoicesToFile } from '../lib/importer';
 import {
   Search,
   Upload,
@@ -17,15 +18,51 @@ import {
   Building,
   CreditCard,
   Download,
+  FileDown,
+  Sparkles,
 } from 'lucide-react';
 
 export const Invoices: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'sales' | 'purchases'>('sales');
+  const [salesData, setSalesData] = useState<Invoice[]>(SALES_INVOICES);
+  const [purchasesData, setPurchasesData] = useState<Invoice[]>(PURCHASE_INVOICES);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
   const [statusFilter, setStatusFilter] = useState<'all' | 'matched' | 'hold' | 'mismatch'>('all');
+  const [importNotification, setImportNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  const currentList = activeTab === 'sales' ? SALES_INVOICES : PURCHASE_INVOICES;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const currentList = activeTab === 'sales' ? salesData : purchasesData;
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const result = await parseInvoiceFile(file, activeTab === 'sales' ? 'B2B' : 'B2B');
+    if (result.success) {
+      if (activeTab === 'sales') {
+        setSalesData((prev) => [...result.invoices, ...prev]);
+      } else {
+        setPurchasesData((prev) => [...result.invoices, ...prev]);
+      }
+      setImportNotification({
+        type: 'success',
+        message: `Successfully imported ${result.rowCount} records from "${result.fileName}". Added to ${activeTab} register!`,
+      });
+    } else {
+      setImportNotification({
+        type: 'error',
+        message: result.error || 'Failed to import spreadsheet file.',
+      });
+    }
+
+    // Reset input
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleTriggerImport = () => {
+    fileInputRef.current?.click();
+  };
 
   const filteredInvoices = currentList.filter((inv) => {
     const matchesSearch =
@@ -45,38 +82,95 @@ export const Invoices: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Hidden File Input for Excel and CSV */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept=".xlsx, .xls, .csv"
+        className="hidden"
+      />
+
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="font-heading font-extrabold text-2xl text-ink">Invoices Register</h1>
           <p className="text-xs text-muted">
-            Manage your B2B sales bills and supplier tax vouchers for October 2026.
+            Manage your B2B sales bills and supplier tax vouchers with live Excel & CSV imports.
           </p>
         </div>
 
-        {/* Import Sources Row */}
-        <div className="flex items-center gap-2">
+        {/* Import & Export Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Main Excel/CSV Import Button */}
           <button
-            onClick={() => alert('Demo action: Parsed Excel sales sheet (48 records uploaded).')}
-            className="px-3.5 py-2 bg-brand text-white rounded-btn text-xs font-bold hover:bg-brand/90 transition-colors shadow-soft flex items-center gap-1.5"
+            type="button"
+            onClick={handleTriggerImport}
+            className="px-3.5 py-2 bg-brand text-white rounded-btn text-xs font-bold hover:bg-brand/90 transition-colors shadow-soft flex items-center gap-1.5 active:scale-95"
           >
-            <FileSpreadsheet className="w-4 h-4 text-accent" />
-            <span>Import Excel</span>
+            <Upload className="w-4 h-4 text-accent" />
+            <span>Import Excel / CSV</span>
           </button>
+
+          {/* Download Sample Templates */}
           <button
-            onClick={() => alert('Demo notice: Tally connector requires TallyPrime running on port 9000.')}
-            className="px-3 py-2 bg-surface hover:bg-bg border border-line text-ink rounded-btn text-xs font-medium"
+            type="button"
+            onClick={() => downloadSampleTemplate('xlsx')}
+            className="px-3 py-2 bg-surface hover:bg-bg border border-line text-ink rounded-btn text-xs font-semibold flex items-center gap-1.5"
+            title="Download formatted sample Excel sheet"
           >
-            Tally
+            <FileSpreadsheet className="w-3.5 h-3.5 text-ok" />
+            <span>Sample .xlsx</span>
           </button>
+
           <button
-            onClick={() => alert('Demo notice: Zoho Books OAuth sync available in full edition.')}
-            className="px-3 py-2 bg-surface hover:bg-bg border border-line text-ink rounded-btn text-xs font-medium"
+            type="button"
+            onClick={() => downloadSampleTemplate('csv')}
+            className="px-3 py-2 bg-surface hover:bg-bg border border-line text-ink rounded-btn text-xs font-semibold flex items-center gap-1.5"
+            title="Download formatted sample CSV file"
           >
-            Zoho
+            <FileText className="w-3.5 h-3.5 text-brand" />
+            <span>Sample .csv</span>
+          </button>
+
+          {/* Export Current List */}
+          <button
+            type="button"
+            onClick={() => exportInvoicesToFile(currentList, `Malabar_${activeTab}_Oct2026`, 'xlsx')}
+            className="px-3 py-2 bg-surface hover:bg-bg border border-line text-muted hover:text-ink rounded-btn text-xs font-medium flex items-center gap-1"
+            title="Export filtered records to Excel"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Export</span>
           </button>
         </div>
       </div>
+
+      {/* Import Notification Banner */}
+      {importNotification && (
+        <div
+          className={`p-4 rounded-card border flex items-center justify-between text-xs transition-all ${
+            importNotification.type === 'success'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+              : 'bg-red-50 border-red-200 text-red-900'
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {importNotification.type === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-ok shrink-0" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 text-risk shrink-0" />
+            )}
+            <span className="font-medium">{importNotification.message}</span>
+          </div>
+          <button
+            onClick={() => setImportNotification(null)}
+            className="p-1 hover:bg-black/5 rounded-full"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* Tabs & Controls */}
       <div className="bg-surface rounded-card p-4 border border-line shadow-soft space-y-4">
@@ -94,7 +188,7 @@ export const Invoices: React.FC = () => {
                   : 'text-muted hover:text-ink'
               }`}
             >
-              Sales ({SALES_INVOICES.length})
+              Sales ({salesData.length})
             </button>
             <button
               onClick={() => {
@@ -107,7 +201,7 @@ export const Invoices: React.FC = () => {
                   : 'text-muted hover:text-ink'
               }`}
             >
-              Purchases ({PURCHASE_INVOICES.length})
+              Purchases ({purchasesData.length})
             </button>
           </div>
 
@@ -299,4 +393,3 @@ export const Invoices: React.FC = () => {
     </div>
   );
 };
-
